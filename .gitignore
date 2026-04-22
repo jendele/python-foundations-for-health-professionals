@@ -34,3 +34,6 @@ build/
 # Local data that shouldn't be committed
 data/private/
 *.csv.local
+
+# Slides are presented live, not distributed via repo
+session1/slides.html
