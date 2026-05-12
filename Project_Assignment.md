@@ -183,9 +183,9 @@ This is not a place to be modest or self-deprecating. It is a place to be specif
 
 ## 5. Required micro-skills (sprinkled throughout)
 
-In addition to the structural requirements above, your notebook must contain **at least one occurrence of each** of the following ten micro-skills. They may appear wherever they fit naturally — there is no requirement to dedicate a section to them, but each must be present and visible. A short markdown note above the relevant cell is recommended so that the grader can identify it.
+In addition to the structural requirements above, your notebook should demonstrate **at least eight of the following ten** micro-skills. **You may skip any two of your choice** — pick the two that fit your data least naturally, or that you found hardest to apply. The remaining eight may appear wherever they fit naturally in the notebook; there is no requirement to dedicate a section to them, but each should be present and visible. A short markdown note above the relevant cell is recommended so that the grader can identify it.
 
-> Each item is worth approximately 1–2 points of the readability grade. Missing items count against the readability score, not against correctness.
+> Each demonstrated item is worth approximately 1–2 points of the readability grade. Beyond eight, additional micro-skills are bonus signals of careful work but not required. The two you skip do not count against you — choose them deliberately.
 
 ### M1 — Read a single value by its index
 
@@ -335,8 +335,6 @@ The spirit of the rule: AI is a tutor you can ask, not a ghost-writer you can hi
 - **Wednesday tutorial, 13 May 2026, evening** — optional, online. Bring your notebook in whatever state it is in. We will work through your specific problems live.
 - **Workflow reference** — `Workflow_Messy_CSV_to_Report.html` (open in any browser). The Ask button accepts plain-English questions.
 - **Course cheat sheets** — `NumPy_Pandas_Reference_Block_B.pdf`, `Python_Reference_Block_B.pdf`, `Terminology_Cheat_Sheet_v2.pdf`.
-- **AC5 course area** — check there for clarifications and FAQs; post your questions, other students likely have the same one.
-- **Email** — for questions that are personal rather than technical.
 
 A note on timing: please do not wait until Sunday evening!
 
@@ -356,7 +354,7 @@ Tick each item before uploading:
 - [ ] At least one derived column
 - [ ] At least one `groupby` (or `pivot_table`) with interpretation
 - [ ] At least one labelled plot saved to disk
-- [ ] All ten micro-skills (M1–M10) present
+- [ ] Eight of ten micro-skills (M1–M10) present
 - [ ] Reflection cell — specific, honest, three short paragraphs
 - [ ] Notebook size focused — around 30 short cells, each doing one identifiable thing
 
