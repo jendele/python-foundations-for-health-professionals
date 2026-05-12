@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Day 2 — Comprehensions, Functions, Scope</title>
+<style>
+  :root { --ink:#111;--paper:#fff;--accent:#EE7F00;--muted:#6b6b6b;--rule:#e5e5e5;--soft:#fff6ec;--code-bg:#1f1f1f;--code-fg:#f5f5f5;--green:#2e8b57;--amber:#d7a700;--red:#c0392b;}
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;background:#000;color:var(--ink);font-family:"Inter","Helvetica Neue",Arial,sans-serif;overflow:hidden;}
+  #stage{position:fixed;inset:0;background:#000;overflow:hidden;}
+  #deck{position:absolute;top:50%;left:50%;width:1600px;height:900px;margin-left:-800px;margin-top:-450px;transform-origin:center center;background:var(--paper);box-shadow:0 0 80px rgba(0,0,0,0.5);}
+  .slide{position:absolute;inset:0;padding:90px 110px 80px 110px;display:none;flex-direction:column;background:var(--paper);} .slide.active{display:flex;}
+  .phase{position:absolute;top:60px;left:60px;color:var(--accent);font-weight:700;font-size:20px;letter-spacing:0.14em;text-transform:uppercase;}
+  h1{font-size:84px;line-height:1.05;margin:0 0 28px;font-weight:800;letter-spacing:-0.02em;} h2{font-size:60px;line-height:1.08;margin:0 0 22px;font-weight:800;letter-spacing:-0.015em;} h3{font-size:38px;line-height:1.15;margin:0 0 18px;font-weight:700;} h4{font-size:26px;line-height:1.2;margin:0 0 12px;font-weight:700;color:var(--accent);letter-spacing:0.02em;text-transform:uppercase;}
+  p{font-size:28px;line-height:1.35;margin:0 0 16px;} .lead{font-size:38px;line-height:1.25;font-weight:500;} .small{font-size:22px;color:var(--muted);} .accent{color:var(--accent);font-weight:700;} .kicker{color:var(--accent);font-weight:700;letter-spacing:0.12em;text-transform:uppercase;font-size:24px;margin-bottom:16px;}
+  ul{margin:0;padding:0 0 0 34px;font-size:26px;line-height:1.4;} ul li{margin:8px 0;}
+  code,pre,.mono{font-family:"JetBrains Mono","Fira Code",ui-monospace,Menlo,Consolas,monospace;}
+  pre.code{background:var(--code-bg);color:var(--code-fg);padding:22px 28px;border-radius:12px;font-size:22px;line-height:1.45;white-space:pre;overflow:hidden;} pre.code .comment{color:#9aa0a6;} pre.code .accent{color:#FFB454;font-weight:600;}
+  table{width:100%;border-collapse:collapse;font-size:24px;} th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--rule);} th{font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-size:18px;color:var(--muted);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:start;} .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px;align-items:start;}
+  .grow{flex:1;}
+  .card{background:#fafafa;border:2px solid var(--ink);border-radius:16px;padding:26px 28px;} .card.accent{border-color:var(--accent);background:var(--soft);}
+  .footer{position:absolute;bottom:30px;left:60px;right:60px;display:flex;justify-content:space-between;color:var(--muted);font-size:20px;letter-spacing:0.08em;} .footer .progress{height:4px;flex:1;margin:0 24px;background:var(--rule);align-self:center;position:relative;overflow:hidden;} .footer .progress span{display:block;height:100%;background:var(--accent);width:0%;transition:width 0.3s ease;}
+  .title-slide{background:var(--ink);color:#fff;padding:160px 110px 100px 110px;} .title-slide h1{color:#fff;font-size:104px;margin-bottom:30px;} .title-slide .lead{color:#cfcfcf;font-size:42px;} .title-slide .kicker{color:var(--accent);font-size:26px;} .title-slide .footer{color:#8a8a8a;} .title-slide .footer .progress{background:#333;}
+  .quote-slide{background:var(--soft);} .quote-slide blockquote{margin:0;font-size:56px;line-height:1.2;font-weight:700;color:var(--ink);letter-spacing:-0.01em;} .quote-slide cite{display:block;margin-top:30px;color:var(--muted);font-size:26px;font-style:normal;}
+  .practice-slide{background:var(--soft);border-left:18px solid var(--accent);padding-left:80px;} .practice-slide h2{color:var(--accent);}
+  .difficulty-row{display:flex;gap:18px;margin-top:24px;}
+  .diff-pill{padding:14px 24px;border-radius:14px;font-size:24px;font-weight:700;} .diff-pill.green{background:#e8f5ee;color:var(--green);} .diff-pill.amber{background:#fdf6e3;color:#a07a00;} .diff-pill.red{background:#fce6e3;color:var(--red);}
+  #help{position:fixed;inset:auto 20px 20px auto;background:rgba(0,0,0,0.85);color:#fff;padding:14px 18px;border-radius:10px;font-size:14px;line-height:1.5;z-index:10;font-family:ui-monospace,Menlo,Consolas,monospace;} #help.hidden{display:none;} #help kbd{background:#333;padding:2px 6px;border-radius:4px;margin:0 2px;}
+</style>
+</head>
+<body>
+<div id="stage"><div id="deck">
+
+  <!-- 1: Title -->
+  <section class="slide title-slide" data-phase="Day 2">
+    <span class="phase">Block B · Day 2</span><div class="grow"></div>
+    <span class="kicker">Saint Mary's General Hospital</span>
+    <h1>Comprehensions,<br/>Functions, Scope.</h1>
+    <p class="lead">Today: get fluent. Tomorrow: meet pandas.</p>
+    <div class="grow"></div>
+    <div class="footer"><span>Thursday · 09:00–15:00</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 2: Quote / setup -->
+  <section class="slide quote-slide" data-phase="Anamnesis">
+    <span class="phase">Today's promise</span><div class="grow"></div>
+    <blockquote>You won't learn a new&nbsp;<span class="accent">library</span>&nbsp;today.<br/>You'll get&nbsp;<span class="accent">fluent</span>&nbsp;in what you already know.</blockquote>
+    <cite>By lunch you can write your own analysis from scratch. This afternoon you practise — alone or in tandems.</cite>
+    <div class="grow"></div>
+    <div class="footer"><span>Saint Mary's · Thursday</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 3: Today's plan -->
+  <section class="slide" data-phase="Anamnesis">
+    <span class="phase">Today's shape</span>
+    <h2>Morning: lecture. Afternoon: practice.</h2>
+    <div class="two-col" style="margin-top: 30px;">
+      <div class="card">
+        <h4>Until ~12:45</h4>
+        <p style="font-size:24px;">Lecture notebook — together.</p>
+        <ul style="font-size:22px;">
+          <li>Comprehensions deeper</li>
+          <li>Function design</li>
+          <li>Scope (LEGB)</li>
+          <li>"TRY THIS" — you change one thing, predict, run</li>
+        </ul>
+      </div>
+      <div class="card accent">
+        <h4>13:30 – 15:00</h4>
+        <p style="font-size:24px;">Exercises notebook — alone or tandem.</p>
+        <ul style="font-size:22px;">
+          <li>18 exercises, 3 difficulty levels</li>
+          <li>Goal: fluency, not completion</li>
+          <li>Skip what's easy, work what's hard</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <p class="small">Tomorrow: NumPy + Pandas. Same Saint Mary's data, faster tools.</p>
+    <div class="footer"><span>Day 2</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 4: PART 1 - Comprehensions -->
+  <section class="slide" data-phase="Part 1">
+    <span class="phase">Part 1</span>
+    <h1>Comprehensions, deeper.</h1>
+    <p class="lead">"For every X in Y, if Z, do W" — in one expression.</p>
+    <div class="grow"></div>
+    <div class="footer"><span>Comprehensions</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 5: Anatomy recap -->
+  <section class="slide" data-phase="§1.1">
+    <span class="phase">§1 · Anatomy recap</span>
+    <h2>Three building blocks. One bracket.</h2>
+<pre class="code">[ output     for    item     in    source     if    condition ]
+     ↑                ↑              ↑                  ↑
+  what comes      where each      where do          which ones
+  out per item    item comes      you get them      do you keep?</pre>
+    <p class="small" style="margin-top: 24px;">Read aloud: <em>"For every item in the source, if the condition holds, produce the output."</em></p>
+    <p class="small">The bracket determines the data structure: <code>[]</code> list · <code>{}</code> set · <code>{k: v}</code> dict</p>
+    <div class="grow"></div>
+    <div class="footer"><span>The structure that carries everything</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 6: List comprehension demo -->
+  <section class="slide" data-phase="§1.2">
+    <span class="phase">§1.2 · List comprehension</span>
+    <h2>Transform &amp; filter.</h2>
+    <div class="two-col">
+<pre class="code"><span class="comment"># All ages</span>
+all_ages = [p["age"] for p in patients]
+
+<span class="comment"># Only patients aged 65+</span>
+elderly = [p["id"]
+           for p in patients
+           if p["age"] &gt;= 65]
+
+<span class="comment"># Combined: cardiology AND seniors</span>
+cardio_seniors = [
+    p["id"]
+    for p in patients
+    if p["ward"] == "Cardiology"
+    and p["age"] &gt;= 65
+]</pre>
+      <div>
+        <p>Each line of the comprehension answers one question:</p>
+        <ul>
+          <li><b>What</b> — the expression at the start</li>
+          <li><b>Where from</b> — the for-clause</li>
+          <li><b>Which ones</b> — the if-clause</li>
+        </ul>
+        <p class="small" style="margin-top: 18px;">Use AND when both conditions must hold. Use OR when either is enough.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Filter, transform, both</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 7: Set comprehension -->
+  <section class="slide" data-phase="§1.3">
+    <span class="phase">§1.3 · Set comprehension</span>
+    <h2>Same shape. Curly braces. Duplicates removed.</h2>
+    <div class="two-col">
+<pre class="code"><span class="comment"># With duplicates — list comp</span>
+wards_list = [p["ward"] for p in patients]
+<span class="comment"># ['Cardiology','InternalMedicine','Geriatrics',
+<span class="comment">#  'Surgery','Cardiology','Geriatrics',...]
+
+<span class="comment"># Unique only — set comp</span>
+wards_set = {p["ward"] for p in patients}
+<span class="comment"># {'Cardiology','InternalMedicine','Geriatrics',
+<span class="comment">#  'Surgery','ICU'}</span></pre>
+      <div>
+        <p>The bracket changes everything.</p>
+        <p class="small" style="margin-top: 18px;">When the answer to "how many distinct values?" matters, use a set — comprehension or otherwise.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Same logic, different container</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 8: Dict comprehension -->
+  <section class="slide" data-phase="§1.4">
+    <span class="phase">§1.4 · Dict comprehension</span>
+    <h2>Build a lookup table.</h2>
+    <div class="two-col">
+<pre class="code"><span class="comment"># Patient ID → age</span>
+age_lookup = {p["id"]: p["age"]
+              for p in patients}
+
+age_lookup["P0003"]   <span class="comment"># 82 — instant</span>
+age_lookup["P0042"]   <span class="comment"># KeyError</span>
+
+<span class="comment"># Safer access:</span>
+age_lookup.get("P0042", "n/a")  <span class="comment"># 'n/a'</span></pre>
+      <div>
+        <p>Once you have a lookup dict, finding any patient's age is <span class="accent">O(1)</span> — instant, regardless of dataset size.</p>
+        <p class="small" style="margin-top: 18px;">With a list of dicts, you'd have to scan everyone. With a lookup dict, one operation.</p>
+      </div>
+    </div>
+    <div class="footer"><span>The dict comprehension builds your indexes</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 9: When NOT to use -->
+  <section class="slide" data-phase="§1.5">
+    <span class="phase">§1.5 · The limit</span>
+    <h2>When NOT to comprehension.</h2>
+    <div class="two-col">
+      <div>
+        <h4>Use a regular for-loop when:</h4>
+        <ul>
+          <li>Multiple steps per item</li>
+          <li>Side effects (printing, plotting)</li>
+          <li>The line gets longer than ~80 chars</li>
+          <li>You're nesting comprehensions</li>
+        </ul>
+        <p class="small" style="margin-top:24px;">Comprehensions are a <b>readability tool</b>, not a status symbol. If you can't read it on one line, it's the wrong shape.</p>
+      </div>
+<pre class="code" style="font-size:18px;"><span class="comment"># Don't do this — unreadable</span>
+[f"{p['id']}: {' &amp; '.join(p['chronic'])
+ if p['chronic'] else 'no comorbidities'}"
+ for p in patients
+ if p["age"] &gt;= 65 and (p["ward"] in
+   ["Cardiology", "Geriatrics"]
+   or len(p["chronic"]) &gt;= 2)]
+
+<span class="comment"># Better — readable loop with named steps</span>
+result = []
+for p in patients:
+    is_old = p["age"] &gt;= 65
+    is_cardio_or_geriatr = p["ward"] in [...]
+    has_many = len(p["chronic"]) &gt;= 2
+    if is_old and (is_cardio_or_geriatr or has_many):
+        ...</pre>
+    </div>
+    <div class="footer"><span>Choose readability</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 10: PART 2 -->
+  <section class="slide" data-phase="Part 2">
+    <span class="phase">Part 2</span>
+    <h1>Functions, deeper.</h1>
+    <p class="lead">A function is a reusable rule. Today we design good ones.</p>
+    <div class="grow"></div>
+    <div class="footer"><span>Functions</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 11: One job -->
+  <section class="slide" data-phase="§2.1">
+    <span class="phase">§2.1 · One function, one job</span>
+    <h2>Each function does <em>one</em> thing well.</h2>
+<pre class="code">def average_age(patient_list):
+    <span class="comment">"""Return the mean age of patients."""</span>
+    if not patient_list:
+        return 0
+    ages = [p["age"] for p in patient_list]
+    return sum(ages) / len(ages)
+
+<span class="comment"># Reuse on any subset — function doesn't care how it was built</span>
+average_age(patients)
+average_age([p for p in patients if p["ward"] == "Cardiology"])
+average_age([])   <span class="comment"># 0 — handled gracefully</span></pre>
+    <p class="small" style="margin-top: 24px;">A clinical protocol — defined inputs, defined output, robust against edge cases.</p>
+    <div class="footer"><span>The smallest reusable unit</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 12: Defaults -->
+  <section class="slide" data-phase="§2.2">
+    <span class="phase">§2.2 · Default arguments</span>
+    <h2>Flexible without forcing every caller to specify everything.</h2>
+<pre class="code">def filter_by_age(patient_list, min_age=65, max_age=None):
+    <span class="comment">"""Filter patients by age range."""</span>
+    result = [p for p in patient_list if p["age"] &gt;= min_age]
+    if max_age is not None:
+        result = [p for p in result if p["age"] &lt;= max_age]
+    return result
+
+filter_by_age(patients)                              <span class="comment"># defaults: 65+</span>
+filter_by_age(patients, min_age=50)                  <span class="comment"># 50+</span>
+filter_by_age(patients, min_age=65, max_age=75)      <span class="comment"># 65-75</span></pre>
+    <p class="small" style="margin-top: 20px;"><span class="accent">Important:</span> default arguments must be <b>immutable</b>. Use <code>None</code>, not <code>[]</code> or <code>{}</code>.</p>
+    <div class="footer"><span>Smart defaults make APIs friendly</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 13: Multi-return -->
+  <section class="slide" data-phase="§2.3">
+    <span class="phase">§2.3 · Returning more than one thing</span>
+    <h2>Use a tuple. Caller unpacks.</h2>
+<pre class="code">def age_stats(patient_list):
+    <span class="comment">"""Return (min, max, mean) ages."""</span>
+    ages = [p["age"] for p in patient_list]
+    return min(ages), max(ages), sum(ages) / len(ages)
+
+<span class="comment"># Tuple unpacking on the call</span>
+youngest, oldest, average = age_stats(patients)
+
+<span class="comment"># Or capture as one tuple</span>
+stats = age_stats(patients)
+print(stats)   <span class="comment"># (39, 90, 65.7)</span></pre>
+    <p class="small" style="margin-top: 24px;">Multi-return is just one tuple — Python lets the caller decide whether to unpack or keep it as a tuple.</p>
+    <div class="footer"><span>One return value can be a tuple</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 14: Functions calling functions -->
+  <section class="slide" data-phase="§2.4">
+    <span class="phase">§2.4 · Composition</span>
+    <h2>Build small. Combine. That's the trick.</h2>
+<pre class="code">def is_high_risk(patient, age_threshold=65, min_conditions=2):
+    return (patient["age"] &gt;= age_threshold
+            and len(patient["chronic"]) &gt;= min_conditions)
+
+def high_risk_patients(patient_list):
+    return [p for p in patient_list if is_high_risk(p)]
+
+def report(patient_list):
+    hr = high_risk_patients(patient_list)
+    print(f"Total: {len(patient_list)}, high-risk: {len(hr)}")</pre>
+    <p class="small" style="margin-top: 24px;">If the rule for "high-risk" changes tomorrow, you change <span class="accent">one function</span>. Everything else keeps working. That's modularity.</p>
+    <div class="footer"><span>Functions that call functions</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 15: Lambda -->
+  <section class="slide" data-phase="§2.5">
+    <span class="phase">§2.5 · Lambda</span>
+    <h2>The tiny one-shot function.</h2>
+<pre class="code"><span class="comment"># Sort patients by age</span>
+sorted(patients, key=<span class="accent">lambda p: p["age"]</span>)
+
+<span class="comment"># Find patient with most chronic conditions</span>
+max(patients, key=<span class="accent">lambda p: len(p["chronic"])</span>)
+
+<span class="comment"># Sort by ward, then by age descending within ward</span>
+sorted(patients, key=<span class="accent">lambda p: (p["ward"], -p["age"])</span>)</pre>
+    <p class="small" style="margin-top: 24px;">Lambda is for <b>tiny, one-shot, in-line</b> functions. Use it as a <code>key=</code> argument and similar.</p>
+    <p class="small">If your lambda has any logic beyond "extract this field" — promote it to a real <code>def</code>.</p>
+    <div class="footer"><span>The right tool, in moderation</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 16: PART 3 -->
+  <section class="slide" data-phase="Part 3">
+    <span class="phase">Part 3</span>
+    <h1>Scope.<br/>Where do variables live?</h1>
+    <p class="lead">L · E · G · B</p>
+    <div class="grow"></div>
+    <div class="footer"><span>Scope</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 17: LEGB -->
+  <section class="slide" data-phase="§3.1">
+    <span class="phase">§3.1 · The LEGB rule</span>
+    <h2>Python looks up names in four places — in this order.</h2>
+    <div class="two-col">
+      <div>
+        <ul style="font-size:30px; line-height:1.6;">
+          <li><b>L</b> — Local (current function)</li>
+          <li><b>E</b> — Enclosing (surrounding function)</li>
+          <li><b>G</b> — Global (module level)</li>
+          <li><b>B</b> — Built-in (Python's own)</li>
+        </ul>
+        <p class="small" style="margin-top: 24px;">Whoever is found <b>first</b> wins. The lookup stops there.</p>
+      </div>
+<pre class="code">x = 100                          <span class="comment"># Global</span>
+
+def outer():
+    x = 50                       <span class="comment"># Enclosing</span>
+
+    def inner():
+        x = 5                    <span class="comment"># Local</span>
+        print(x)                 <span class="comment"># 5</span>
+
+    inner()
+    print(x)                     <span class="comment"># 50</span>
+
+outer()
+print(x)                         <span class="comment"># 100</span></pre>
+    </div>
+    <div class="footer"><span>Names are resolved by location</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 18: Local stays local -->
+  <section class="slide" data-phase="§3.2">
+    <span class="phase">§3.2 · Local stays local</span>
+    <h2>What happens inside, stays inside.</h2>
+<pre class="code">def compute_score(patient):
+    bonus = 10
+    score = patient["age"] + len(patient["chronic"]) * 5 + bonus
+    return score
+
+risk = compute_score(patients[0])
+print(risk)              <span class="comment"># 87</span>
+
+print(bonus)             <span class="comment"># NameError</span>
+                         <span class="comment"># bonus was local — it's gone</span></pre>
+    <p class="small" style="margin-top: 24px;">Variables inside a function are <b>destroyed when the function returns</b>. The only way to bring a value out is to <code>return</code> it — and the caller must catch it with <code>=</code>.</p>
+    <div class="footer"><span>Functions are sealed boxes</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 19: Two safe rules -->
+  <section class="slide" data-phase="§3.3">
+    <span class="phase">§3.3 · Two safe rules</span>
+    <h2>Follow these. Most scope bugs disappear.</h2>
+    <div class="two-col" style="margin-top: 30px;">
+      <div class="card accent">
+        <h4>Rule 1</h4>
+        <p style="font-size:24px;"><b>Always <code>return</code> what you compute.</b></p>
+        <p class="small" style="margin-top:14px;">Don't rely on side effects. Predictable, testable, no surprises.</p>
+      </div>
+      <div class="card accent">
+        <h4>Rule 2</h4>
+        <p style="font-size:24px;"><b>Don't read or write globals from inside a function.</b></p>
+        <p class="small" style="margin-top:14px;">Pass them as parameters. Functions become self-contained units.</p>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <p class="small">Following these turns 80% of beginner bugs into non-issues.</p>
+    <div class="footer"><span>Discipline, not memorisation</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 20: Wrap up -->
+  <section class="slide" data-phase="Wrap-up">
+    <span class="phase">Wrap-up</span>
+    <h2>The three patterns that come up over and over.</h2>
+<pre class="code">
+<span class="comment"># 1. Filter (comprehension)</span>
+subset = [item for item in collection if condition]
+
+<span class="comment"># 2. Transform (comprehension)</span>
+new_collection = [f(item) for item in collection]
+
+<span class="comment"># 3. Aggregate (function)</span>
+def summary(collection):
+    return some_metric_calculated_from(collection)</pre>
+    <p style="margin-top: 30px;"><span class="accent">Combine them:</span> filter → transform → aggregate. That's the workflow of every analysis you'll do for the rest of the course.</p>
+    <div class="footer"><span>Build with these blocks</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 21: Practice slide -->
+  <section class="slide practice-slide" data-phase="Afternoon">
+    <span class="phase">⏸️ This afternoon</span>
+    <h2>Eighteen exercises.<br/>Goal: <em>fluency</em>, not completion.</h2>
+    <div class="difficulty-row">
+      <span class="diff-pill green">🟢 Basic — 6</span>
+      <span class="diff-pill amber">🟡 Intermediate — 9</span>
+      <span class="diff-pill red">🔴 Fast-Track — 3</span>
+    </div>
+    <ul style="margin-top: 30px; font-size:26px;">
+      <li>Comprehensions: A1–A6</li>
+      <li>Functions: B1–B6</li>
+      <li>Scope &amp; Debugging: C1–C6</li>
+    </ul>
+    <p class="small" style="margin-top: 30px;">Skip what's clear. Work what's hard. Tandem if it helps. Ask if you're stuck for more than 5 minutes.</p>
+    <p class="small"><b>Open <code>thursday_exercises.ipynb</code></b></p>
+    <div class="footer"><span>Practice</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+  <!-- 22: Cliffhanger -->
+  <section class="slide title-slide" data-phase="Tomorrow">
+    <span class="phase">Tomorrow</span><div class="grow"></div>
+    <span class="kicker">Friday · 09:00 – 15:00</span>
+    <h1>NumPy.<br/>Pandas.<br/>Real data.</h1>
+    <p class="lead">Same Saint Mary's. Real CSV files. Vectorised operations.</p>
+    <p class="lead" style="color:#FFB454; margin-top:20px;">Today's foundations make tomorrow easy.</p>
+    <div class="grow"></div>
+    <div class="footer"><span>See you tomorrow morning</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+  </section>
+
+</div></div>
+
+<div id="help" class="hidden"><div><kbd>←</kbd> <kbd>→</kbd> · <kbd>space</kbd> · <kbd>home</kbd>/<kbd>end</kbd></div><div><kbd>f</kbd> fullscreen · <kbd>?</kbd> help</div></div>
+<script>
+  const slides=Array.from(document.querySelectorAll('.slide'));const total=slides.length;let idx=0;
+  function render(){slides.forEach((s,i)=>s.classList.toggle('active',i===idx));document.querySelectorAll('.slide-num').forEach(el=>el.textContent=(idx+1)+' / '+total);document.querySelectorAll('.progress span').forEach(el=>el.style.width=(((idx+1)/total)*100)+'%');history.replaceState(null,'','#'+(idx+1));}
+  function go(n){idx=Math.max(0,Math.min(total-1,n));render();}
+  document.addEventListener('keydown',(e)=>{switch(e.key){case 'ArrowRight':case 'PageDown':case ' ':e.preventDefault();go(idx+1);break;case 'ArrowLeft':case 'PageUp':e.preventDefault();go(idx-1);break;case 'Home':e.preventDefault();go(0);break;case 'End':e.preventDefault();go(total-1);break;case 'f':case 'F':if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen();break;case '?':document.getElementById('help').classList.toggle('hidden');break;}});
+  document.getElementById('stage').addEventListener('click',(e)=>{if(e.shiftKey)go(idx-1);else go(idx+1);});
+  function fit(){const deck=document.getElementById('deck');const scale=Math.min(window.innerWidth/1600,window.innerHeight/900);deck.style.transform='scale('+scale+')';}
+  window.addEventListener('resize',fit);fit();
+  const hashIdx=parseInt(location.hash.replace('#',''),10);if(!isNaN(hashIdx)&&hashIdx>=1&&hashIdx<=total)idx=hashIdx-1;render();
+  const help=document.getElementById('help');help.classList.remove('hidden');setTimeout(()=>help.classList.add('hidden'),5000);
+</script>
+</body>
+</html>

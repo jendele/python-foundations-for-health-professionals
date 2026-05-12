@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Session 2 — Logic &amp; Control Flow</title>
+<style>
+  :root {
+    --ink: #111111;
+    --paper: #ffffff;
+    --accent: #EE7F00;
+    --muted: #6b6b6b;
+    --rule: #e5e5e5;
+    --soft: #fff6ec;
+    --green: #2e8b57;
+    --amber: #d7a700;
+    --red:   #c0392b;
+    --code-bg: #1f1f1f;
+    --code-fg: #f5f5f5;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: var(--ink);
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    overflow: hidden;
+  }
+  #deck {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1600px;
+    height: 900px;
+    margin-left: -800px;
+    margin-top:  -450px;
+    transform-origin: center center;
+    background: var(--paper);
+    box-shadow: 0 0 80px rgba(0,0,0,0.5);
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 90px 110px 80px 110px;
+    display: none;
+    flex-direction: column;
+    background: var(--paper);
+  }
+  .slide.active { display: flex; }
+
+  .phase {
+    position: absolute;
+    top: 60px;
+    left: 60px;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h1 { font-size: 84px; line-height: 1.05; margin: 0 0 28px; font-weight: 800; letter-spacing: -0.02em;}
+  h2 { font-size: 60px; line-height: 1.08; margin: 0 0 24px; font-weight: 800; letter-spacing: -0.015em;}
+  h3 { font-size: 40px; line-height: 1.15; margin: 0 0 20px; font-weight: 700; color: var(--ink);}
+  h4 { font-size: 26px; line-height: 1.2; margin: 0 0 14px; font-weight: 700; color: var(--accent); letter-spacing: 0.02em; text-transform: uppercase;}
+  p  { font-size: 28px; line-height: 1.35; margin: 0 0 18px;}
+  .lead { font-size: 40px; line-height: 1.25; font-weight: 500;}
+  .small { font-size: 22px; color: var(--muted);}
+  .muted { color: var(--muted); }
+  .accent { color: var(--accent); font-weight: 700; }
+  .kicker { color: var(--accent); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-size: 24px; margin-bottom: 16px; }
+
+  ul { margin: 0; padding: 0 0 0 34px; font-size: 26px; line-height: 1.45; }
+  ul li { margin: 8px 0; }
+  ul.clean { list-style: none; padding: 0; }
+
+  code, pre, .mono { font-family: "JetBrains Mono", "Fira Code", ui-monospace, Menlo, Consolas, monospace; }
+
+  pre.code {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 22px 28px;
+    border-radius: 14px;
+    font-size: 24px;
+    line-height: 1.5;
+    white-space: pre;
+    overflow: hidden;
+  }
+  pre.code .comment { color: #9aa0a6; }
+  pre.code .prompt  { color: var(--accent); }
+  pre.code .kw      { color: #ffb86c; font-weight: 700; }
+  pre.code .str     { color: #a6e22e; }
+  pre.code .num     { color: #66d9ef; }
+
+  .pill {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: var(--soft);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 24px;}
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--rule);}
+  th { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 18px; color: var(--muted);}
+  tr.row-green td { background: rgba(46, 139, 87, 0.08); }
+  tr.row-amber td { background: rgba(215, 167, 0, 0.10); }
+  tr.row-red   td { background: rgba(192, 57, 43, 0.10); }
+  .dot { display: inline-block; width: 16px; height: 16px; border-radius: 50%; vertical-align: middle; margin-right: 10px;}
+  .dot.g { background: var(--green); }
+  .dot.a { background: var(--amber); }
+  .dot.r { background: var(--red); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; align-items: start; }
+  .grow { flex: 1; }
+
+  .card {
+    background: #fafafa;
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    padding: 24px 28px;
+  }
+  .card.accent { border-color: var(--accent); background: var(--soft); }
+  .card h4 { margin-bottom: 10px; }
+  .card p { font-size: 22px; margin: 0; }
+
+  .footer {
+    position: absolute;
+    bottom: 30px;
+    left: 60px;
+    right: 60px;
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 20px;
+    letter-spacing: 0.08em;
+  }
+  .footer .progress {
+    height: 4px;
+    flex: 1;
+    margin: 0 24px;
+    background: var(--rule);
+    align-self: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .footer .progress span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  .beamer-cue {
+    position: absolute;
+    top: 44px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: white;
+    padding: 8px 24px;
+    border-radius: 0 0 14px 14px;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    z-index: 4;
+  }
+
+  .title-slide {
+    background: var(--ink);
+    color: white;
+    padding: 160px 110px 100px 110px;
+  }
+  .title-slide h1 { color: white; font-size: 108px; margin-bottom: 30px;}
+  .title-slide .lead { color: #cfcfcf; font-size: 42px;}
+  .title-slide .kicker { color: var(--accent); font-size: 26px;}
+  .title-slide .phase { color: var(--accent); }
+  .title-slide .footer { color: #8a8a8a;}
+  .title-slide .footer .progress { background: #333; }
+
+  .quote-slide { background: var(--soft); }
+  .quote-slide blockquote {
+    margin: 0;
+    font-size: 54px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .quote-slide cite {
+    display: block;
+    margin-top: 30px;
+    color: var(--muted);
+    font-size: 26px;
+    font-style: normal;
+  }
+
+  .diagram {
+    display: grid;
+    gap: 12px;
+    font-size: 26px;
+  }
+  .diagram .box {
+    padding: 18px 24px;
+    background: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .diagram .box.accent { border-color: var(--accent); background: var(--soft); color: var(--accent); }
+  .diagram .connector { text-align: center; font-size: 30px; color: var(--accent); line-height: 0.6;}
+
+  .no-show { display: none !important; }
+
+  #help {
+    position: fixed;
+    inset: auto 20px 20px auto;
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    z-index: 10;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+  }
+  #help.hidden { display: none; }
+  #help kbd { background: #333; padding: 2px 6px; border-radius: 4px; margin: 0 2px;}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="deck">
+
+    <!-- =========== 1 · Title =========== -->
+    <section class="slide title-slide" data-phase="Session 2">
+      <span class="phase">Session 2</span>
+      <div class="grow"></div>
+      <span class="kicker">Python Foundations for Data Science</span>
+      <h1>Logic &amp;<br/>Control Flow</h1>
+      <p class="lead">Making Python <span class="accent">decide</span> and <span class="accent">repeat</span>.</p>
+      <div class="grow"></div>
+      <div class="footer">
+        <span></span>
+        <span class="progress"><span></span></span>
+        <span class="slide-num"></span>
+      </div>
+    </section>
+
+    <!-- =========== 2 · Yesterday / Today =========== -->
+    <section class="slide quote-slide" data-phase="Meta">
+      <span class="phase">Opening</span>
+      <div class="grow"></div>
+      <blockquote>
+        Yesterday we learned <span class="accent">where</span> code runs.<br/>
+        Today — <span class="accent">what it decides.</span>
+      </blockquote>
+      <cite>The machine gains two superpowers today: it can <em>compare</em>, and it can <em>repeat</em>. Clinical reasoning lives on exactly these two moves.</cite>
+      <div class="grow"></div>
+      <div class="footer"><span>Session 2 — Logic &amp; Control Flow</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 3 · Roadmap =========== -->
+    <section class="slide" data-phase="Meta">
+      <span class="phase">Opening</span>
+      <h2>The shape of today</h2>
+      <p class="small" style="margin-bottom: 30px;">Same five phases as yesterday — you already know the rhythm.</p>
+      <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-top: 20px;">
+        <div class="card"><h4>1 · Anamnesis</h4><p>Where in medicine do we decide?</p></div>
+        <div class="card"><h4>2 · Anatomy</h4><p>Types, comparisons, <code>if</code>, loops.</p></div>
+        <div class="card"><h4>3 · Physiology</h4><p>Truthiness, short-circuit, iteration.</p></div>
+        <div class="card accent"><h4>4 · Clinic</h4><p>BMI for 30 patients. BP by ESH/ESC.</p></div>
+        <div class="card"><h4>5 · DD</h4><p>Four bugs you will meet today.</p></div>
+      </div>
+      <div class="grow"></div>
+      <div class="footer"><span>Session 2 — Roadmap</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 4 · Homework check-in =========== -->
+    <section class="slide" data-phase="Anamnesis">
+      <span class="phase">Phase 1 · Anamnesis</span>
+      <h2>Your homework — how did it feel?</h2>
+      <div class="two-col" style="margin-top: 30px;">
+        <div>
+          <p>You wrote three almost-identical code blocks. The only thing that changed was <code>patient_1 → patient_2 → patient_3</code>.</p>
+          <p class="lead" style="margin-top: 24px;">What if I give you <span class="accent">30</span> patients?<br/>Or <span class="accent">3 million</span>?</p>
+        </div>
+        <div class="card accent">
+          <h4>The pain is the lesson</h4>
+          <p style="font-size:24px;">That repetition you felt — that <em>is</em> the motivation for today. We will make Python do the boring part.</p>
+        </div>
+      </div>
+      <div class="grow"></div>
+      <div class="footer"><span>Session 2 — Anamnesis</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 5 · Clinical decisions live on thresholds =========== -->
+    <section class="slide" data-phase="Anamnesis">
+      <span class="phase">Phase 1 · The clinical parallel</span>
+      <h2>How does a clinician decide?</h2>
+      <div class="three-col" style="margin-top: 30px;">
+        <div class="card">
+          <h4>Threshold</h4>
+          <p>Systolic &ge; 140 mmHg → hypertension.</p>
+        </div>
+        <div class="card">
+          <h4>Combination</h4>
+          <p>Age &gt; 65 <em>and</em> creatinine &gt; 1.2 → dose adjustment.</p>
+        </div>
+        <div class="card">
+          <h4>Algorithm</h4>
+          <p>For each patient in the cohort, check guideline, classify.</p>
+        </div>
+      </div>
+      <div class="card accent" style="margin-top: 30px;">
+        <p style="font-size:30px; font-weight:600; margin:0;">Every clinical algorithm is made of <span class="accent">comparisons</span> and <span class="accent">repetitions</span>. Python uses the exact same two primitives.</p>
+      </div>
+      <div class="grow"></div>
+      <div class="footer"><span>Session 2 — Threshold thinking</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 6 · Leading question =========== -->
+    <section class="slide" data-phase="Anamnesis">
+      <span class="phase">Phase 1 · Leading question</span>
+      <div class="grow"></div>
+      <span class="kicker">Today's question</span>
+      <h1 style="font-size:68px;">How do we teach Python to <span class="accent">compare</span> values and <span class="accent">repeat</span> actions?</h1>
+      <div class="grow"></div>
+      <p class="small">Two primitives. Four building blocks. A lot of medicine you can suddenly write down.</p>
+      <div class="footer"><span>Session 2 — Leading question</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 7 · Phase 2 leading =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Anatomy</span>
+      <div class="grow"></div>
+      <span class="kicker">Leading question</span>
+      <h1 style="font-size:72px;">Which <span class="accent">building blocks</span> does Python give us for decisions and loops?</h1>
+      <div class="grow"></div>
+      <p class="small">Four: types · comparisons &amp; logic · <code>if/elif/else</code> · <code>for</code> and <code>while</code>.</p>
+      <div class="footer"><span>Session 2 — Phase 2</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 8 · Types =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Block A</span>
+      <h2>Four types you will use today</h2>
+      <table style="margin-top: 20px;">
+        <thead>
+          <tr><th>Type</th><th>Example</th><th>Used for</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>int</code></td><td><code>42</code>, <code>-3</code>, <code>0</code></td><td>counts, ages, IDs</td></tr>
+          <tr><td><code>float</code></td><td><code>1.73</code>, <code>98.6</code>, <code>25.04</code></td><td>measurements, probabilities</td></tr>
+          <tr><td><code>str</code></td><td><code>"hypertension"</code>, <code>'P101'</code></td><td>labels, names, categories</td></tr>
+          <tr><td><code>bool</code></td><td><code>True</code>, <code>False</code></td><td>decisions, flags</td></tr>
+        </tbody>
+      </table>
+      <div class="card accent" style="margin-top: 26px;">
+        <p style="font-size:26px; margin:0;">Check the type any time with <code>type(value)</code>. A silent type mismatch is the #1 cause of "why isn't this comparing?" bugs.</p>
+      </div>
+      <div class="footer"><span>Session 2 — Types</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 9 · Comparison ops =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Block B</span>
+      <h2>Comparison operators → return <code>bool</code></h2>
+      <div class="two-col" style="margin-top: 20px;">
+        <table>
+          <thead><tr><th>Operator</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>==</code></td><td>equal to</td></tr>
+            <tr><td><code>!=</code></td><td>not equal to</td></tr>
+            <tr><td><code>&lt;</code></td><td>less than</td></tr>
+            <tr><td><code>&gt;</code></td><td>greater than</td></tr>
+            <tr><td><code>&lt;=</code></td><td>less than or equal</td></tr>
+            <tr><td><code>&gt;=</code></td><td>greater than or equal</td></tr>
+          </tbody>
+        </table>
+        <pre class="code">
+<span class="num">140</span> &gt;= <span class="num">140</span>         <span class="comment"># True</span>
+systolic &gt; <span class="num">180</span>     <span class="comment"># True if hypertensive crisis</span>
+age == <span class="num">65</span>          <span class="comment"># True only for exactly 65</span>
+name != <span class="str">"unknown"</span>  <span class="comment"># True unless literally "unknown"</span>
+</pre>
+      </div>
+      <div class="card accent" style="margin-top: 22px;">
+        <p style="font-size:26px; margin:0;"><strong>Trap:</strong> <code>=</code> assigns, <code>==</code> compares. <code>age = 65</code> sets age to 65. <code>age == 65</code> asks whether age is 65.</p>
+      </div>
+      <div class="footer"><span>Session 2 — Comparison</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 10 · Logical ops =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Block B</span>
+      <h2>Logical operators — combine <code>bool</code>s</h2>
+      <div class="two-col" style="margin-top: 20px;">
+        <div>
+          <table>
+            <thead><tr><th>Op</th><th>True when</th></tr></thead>
+            <tbody>
+              <tr><td><code>and</code></td><td>both sides are True</td></tr>
+              <tr><td><code>or</code></td><td>at least one side is True</td></tr>
+              <tr><td><code>not</code></td><td>flips True ↔ False</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="code">
+age &gt; <span class="num">65</span> <span class="kw">and</span> creatinine &gt; <span class="num">1.2</span>
+<span class="comment"># dose adjustment criterion</span>
+
+systolic &gt;= <span class="num">140</span> <span class="kw">or</span> diastolic &gt;= <span class="num">90</span>
+<span class="comment"># ESH/ESC hypertension definition</span>
+
+<span class="kw">not</span> smoker
+<span class="comment"># patient is a non-smoker</span>
+</pre>
+      </div>
+      <div class="card" style="margin-top: 22px;">
+        <p style="font-size:24px; margin:0;"><strong>Clinical mental model:</strong> <code>and</code> = <em>all criteria must hold</em> (like a checklist). <code>or</code> = <em>any criterion is enough</em> (like a red-flag list).</p>
+      </div>
+      <div class="footer"><span>Session 2 — Logic</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 11 · if / elif / else =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Block C</span>
+      <h2>The decision block: <code>if</code> / <code>elif</code> / <code>else</code></h2>
+      <pre class="code" style="margin-top: 24px;">
+<span class="kw">if</span> systolic &gt;= <span class="num">180</span>:
+    category = <span class="str">"hypertensive crisis"</span>
+<span class="kw">elif</span> systolic &gt;= <span class="num">140</span>:
+    category = <span class="str">"hypertension"</span>
+<span class="kw">elif</span> systolic &gt;= <span class="num">130</span>:
+    category = <span class="str">"elevated"</span>
+<span class="kw">else</span>:
+    category = <span class="str">"normal"</span>
+</pre>
+      <div class="two-col" style="margin-top: 26px;">
+        <div class="card">
+          <h4>Reads top-to-bottom</h4>
+          <p>The first branch whose condition is <code>True</code> wins. All others are skipped.</p>
+        </div>
+        <div class="card accent">
+          <h4>The <code>else</code> is the catch-all</h4>
+          <p>It runs when <em>no</em> prior condition matched. Use it for "everything else" — not as a fallback for things you forgot.</p>
+        </div>
+      </div>
+      <div class="footer"><span>Session 2 — if/elif/else</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 12 · Indentation is control flow =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Block C</span>
+      <h2>In Python, <span class="accent">indentation is code</span></h2>
+      <div class="two-col" style="margin-top: 20px;">
+        <pre class="code">
+<span class="kw">if</span> systolic &gt;= <span class="num">140</span>:
+    print(<span class="str">"flag patient"</span>)
+    notify_clinician()
+
+<span class="comment"># two spaces / tabs different</span>
+<span class="comment"># → IndentationError</span>
+</pre>
+        <div class="card accent">
+          <h4>What the indent means</h4>
+          <p>"These lines belong to the <code>if</code>-block." The indented block is what runs when the condition is True.</p>
+          <p style="margin-top: 12px;"><strong>Rule:</strong> 4 spaces. Never mix tabs and spaces. VSCode does this for you.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top: 24px;">
+        <p style="font-size:24px; margin:0;"><strong>Why Python does this:</strong> to force readable code. In other languages you can write a 200-line mess that runs; Python refuses to run what it cannot visually parse.</p>
+      </div>
+      <div class="footer"><span>Session 2 — Indentation</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 13 · for loop =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Block D</span>
+      <h2>The <code>for</code> loop — "do this for each …"</h2>
+      <pre class="code" style="margin-top: 24px;">
+patients = [patient_1, patient_2, patient_3]
+
+<span class="kw">for</span> p <span class="kw">in</span> patients:
+    bmi = p[<span class="str">"weight_kg"</span>] / (p[<span class="str">"height_m"</span>] ** <span class="num">2</span>)
+    <span class="kw">print</span>(<span class="str">f'</span>{p[<span class="str">"name"</span>]}: BMI = {bmi:.<span class="num">1</span>f}<span class="str">'</span>)
+</pre>
+      <div class="two-col" style="margin-top: 24px;">
+        <div class="card">
+          <h4>The loop variable <code>p</code></h4>
+          <p>Takes one value from the list per iteration. Name it after what it represents, not <code>x</code> or <code>i</code>.</p>
+        </div>
+        <div class="card accent">
+          <h4>This is the payoff</h4>
+          <p>Three patients, three lines of output — but <em>one</em> block of code. 30 patients? Same block. 3 million? Same block.</p>
+        </div>
+      </div>
+      <div class="footer"><span>Session 2 — for</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 14 · while loop =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Block D</span>
+      <h2>The <code>while</code> loop — "keep going while …"</h2>
+      <pre class="code" style="margin-top: 24px;">
+attempts = <span class="num">0</span>
+<span class="kw">while</span> attempts &lt; <span class="num">3</span>:
+    answer = input(<span class="str">"Enter a valid ID: "</span>)
+    <span class="kw">if</span> answer.startswith(<span class="str">"P"</span>):
+        <span class="kw">break</span>
+    attempts += <span class="num">1</span>
+</pre>
+      <div class="two-col" style="margin-top: 22px;">
+        <div class="card">
+          <h4><code>for</code> vs. <code>while</code></h4>
+          <p><code>for</code> = iterate a <em>known</em> collection. <code>while</code> = repeat until some <em>condition</em> becomes False. Use <code>for</code> when you can.</p>
+        </div>
+        <div class="card accent">
+          <h4>Danger: infinite loop</h4>
+          <p>If the condition never becomes False, the loop runs forever. Always make sure something inside the loop <em>changes</em> the condition.</p>
+        </div>
+      </div>
+      <div class="footer"><span>Session 2 — while</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 15 · break / continue =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Block D</span>
+      <h2><code>break</code> and <code>continue</code></h2>
+      <div class="two-col" style="margin-top: 20px;">
+        <div>
+          <pre class="code">
+<span class="kw">for</span> p <span class="kw">in</span> patients:
+    <span class="kw">if</span> p[<span class="str">"age"</span>] &lt; <span class="num">18</span>:
+        <span class="kw">continue</span>   <span class="comment"># skip this one</span>
+    process(p)</pre>
+          <p class="small" style="margin-top: 12px;"><strong>continue</strong> → skip the rest of this iteration, go to the next.</p>
+        </div>
+        <div>
+          <pre class="code">
+<span class="kw">for</span> p <span class="kw">in</span> patients:
+    <span class="kw">if</span> p[<span class="str">"id"</span>] == target_id:
+        found = p
+        <span class="kw">break</span>      <span class="comment"># stop searching</span></pre>
+          <p class="small" style="margin-top: 12px;"><strong>break</strong> → exit the loop entirely.</p>
+        </div>
+      </div>
+      <div class="card accent" style="margin-top: 24px;">
+        <p style="font-size:24px; margin:0;"><strong>Use sparingly.</strong> Most loops don't need them. When they do, they make the intent crystal clear: "this patient is out" or "I found what I needed, stop."</p>
+      </div>
+      <div class="footer"><span>Session 2 — break/continue</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 16 · List comprehension teaser =========== -->
+    <section class="slide" data-phase="Anatomy">
+      <span class="phase">Phase 2 · Bonus</span>
+      <h2>List comprehension — a sneak peek</h2>
+      <pre class="code" style="margin-top: 24px;">
+<span class="comment"># Long form</span>
+bmis = []
+<span class="kw">for</span> p <span class="kw">in</span> patients:
+    bmis.append(p[<span class="str">"weight_kg"</span>] / (p[<span class="str">"height_m"</span>] ** <span class="num">2</span>))
+
+<span class="comment"># Short form — a list comprehension</span>
+bmis = [p[<span class="str">"weight_kg"</span>] / (p[<span class="str">"height_m"</span>] ** <span class="num">2</span>) <span class="kw">for</span> p <span class="kw">in</span> patients]
+</pre>
+      <div class="card" style="margin-top: 22px;">
+        <p style="font-size:24px; margin:0;">Same result, one line. Reads as: <em>"make a list of BMI for each p in patients."</em> Use it when the transformation fits on one line. Skip it when the logic gets nested — a plain <code>for</code> loop is always more readable.</p>
+      </div>
+      <div class="footer"><span>Session 2 — Comprehensions</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 17 · Phase 3 leading =========== -->
+    <section class="slide" data-phase="Physiology">
+      <span class="phase">Phase 3 · Physiology</span>
+      <div class="grow"></div>
+      <span class="kicker">Leading question</span>
+      <h1 style="font-size:68px;">We know <em>what</em> the pieces are.<br/>Now — <span class="accent">why do they behave that way?</span></h1>
+      <div class="grow"></div>
+      <p class="small">Three behaviours to internalise: truthiness · short-circuit · iteration semantics.</p>
+      <div class="footer"><span>Session 2 — Phase 3</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 18 · Truthiness =========== -->
+    <section class="slide" data-phase="Physiology">
+      <span class="phase">Phase 3 · Behaviour 1</span>
+      <h2>Truthiness — not every condition needs <code>==</code></h2>
+      <div class="two-col" style="margin-top: 20px;">
+        <div>
+          <h4>Falsy values</h4>
+          <pre class="code" style="font-size:22px;">
+<span class="num">0</span>              <span class="comment"># zero int</span>
+<span class="num">0.0</span>            <span class="comment"># zero float</span>
+<span class="str">""</span>             <span class="comment"># empty string</span>
+[]             <span class="comment"># empty list</span>
+{}             <span class="comment"># empty dict</span>
+<span class="kw">None</span>           <span class="comment"># the "nothing" value</span>
+<span class="kw">False</span>          <span class="comment"># literal</span>
+</pre>
+        </div>
+        <div>
+          <h4>Everything else is truthy</h4>
+          <pre class="code" style="font-size:22px;">
+<span class="kw">if</span> patient_list:
+    print(<span class="str">"we have patients"</span>)
+<span class="comment"># runs iff list is non-empty</span>
+
+<span class="kw">if</span> name:
+    print(name)
+<span class="comment"># runs iff name is not ""</span>
+</pre>
+        </div>
+      </div>
+      <div class="card accent" style="margin-top: 22px;">
+        <p style="font-size:24px; margin:0;">Use truthiness for "is there anything here?" checks. Use <code>==</code> when comparing against specific values.</p>
+      </div>
+      <div class="footer"><span>Session 2 — Truthiness</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 19 · Short-circuit =========== -->
+    <section class="slide" data-phase="Physiology">
+      <span class="phase">Phase 3 · Behaviour 2</span>
+      <h2>Short-circuit evaluation</h2>
+      <p class="lead" style="margin-top: 10px;">Python stops evaluating as soon as the answer is certain.</p>
+      <pre class="code" style="margin-top: 22px;">
+<span class="comment"># With `and`: if the first is False, the rest is irrelevant</span>
+<span class="kw">if</span> patient <span class="kw">and</span> patient[<span class="str">"age"</span>] &gt; <span class="num">65</span>:
+    ...
+<span class="comment"># If patient is None, the second part is never evaluated — no crash.</span>
+
+<span class="comment"># With `or`: if the first is True, the rest is irrelevant</span>
+display_name = name <span class="kw">or</span> <span class="str">"unknown"</span>
+<span class="comment"># Uses `name` if truthy, falls back to "unknown" otherwise.</span>
+</pre>
+      <div class="card accent" style="margin-top: 22px;">
+        <p style="font-size:24px; margin:0;"><strong>Clinical parallel:</strong> a red-flag checklist stops as soon as one red flag is found. Python's <code>or</code> does exactly that. A criteria-all-must-hold list stops as soon as one fails. That's <code>and</code>.</p>
+      </div>
+      <div class="footer"><span>Session 2 — Short-circuit</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 20 · Iteration semantics =========== -->
+    <section class="slide" data-phase="Physiology">
+      <span class="phase">Phase 3 · Behaviour 3</span>
+      <h2>What <em>really</em> happens in a <code>for</code> loop</h2>
+      <div class="diagram" style="margin-top: 22px; max-width: 1150px; margin-left:auto; margin-right:auto;">
+        <div class="box">Python asks the list: "give me your <strong>iterator</strong>"</div>
+        <div class="connector">↓</div>
+        <div class="box accent">Iterator hands out one element at a time, on request</div>
+        <div class="connector">↓&nbsp;&nbsp;<span class="small">each <code>next()</code> call</span></div>
+        <div class="box">Body of the loop runs with the loop variable bound to that element</div>
+        <div class="connector">↓&nbsp;&nbsp;<span class="small">repeat until iterator is exhausted</span></div>
+        <div class="box">Loop ends · the loop variable keeps its last value</div>
+      </div>
+      <p class="small" style="text-align:center; margin-top: 18px;">The iterator is the reason <code>for</code> works the same for lists, strings, dicts, files, and huge datasets that do not fit in memory.</p>
+      <div class="footer"><span>Session 2 — Iteration</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 21 · Phase 4 beamer =========== -->
+    <section class="slide" data-phase="Clinic">
+      <span class="phase">Phase 4 · Clinic — Hands-on</span>
+      <div class="beamer-cue">Beamer switches to notebook</div>
+      <h2 style="margin-top: 44px;">Open <code>session2/lecture_notes.ipynb</code></h2>
+      <p class="lead" style="margin-top: 20px;">Two cases today:</p>
+      <div class="two-col" style="margin-top: 20px;">
+        <div class="card">
+          <h4>Case 1 · BMI × 30</h4>
+          <p>Take your homework BMI code. Put it into a <code>for</code> loop over all 30 patients in <code>sample_patients.csv</code>. One block. 30 outputs.</p>
+        </div>
+        <div class="card accent">
+          <h4>Case 2 · Blood pressure</h4>
+          <p>Classify each patient's blood pressure per the ESH/ESC 2023 guideline. Four categories. One <code>if/elif/else</code> block.</p>
+        </div>
+      </div>
+      <p class="small" style="margin-top: 20px;">Tandems again. Talk through the threshold values out loud — it helps the code come out right.</p>
+      <div class="footer"><span>Session 2 — Clinic</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 22 · BP guideline table =========== -->
+    <section class="slide" data-phase="Clinic">
+      <span class="phase">Phase 4 · Case 2 reference</span>
+      <h2>ESH/ESC 2023 — adult office BP</h2>
+      <table style="margin-top: 20px;">
+        <thead>
+          <tr><th>Category</th><th>Systolic (mmHg)</th><th></th><th>Diastolic (mmHg)</th></tr>
+        </thead>
+        <tbody>
+          <tr class="row-green"><td><span class="dot g"></span><strong>Optimal</strong></td><td>&lt; 120</td><td>and</td><td>&lt; 80</td></tr>
+          <tr><td><span class="dot g"></span>Normal</td><td>120–129</td><td>and/or</td><td>80–84</td></tr>
+          <tr class="row-amber"><td><span class="dot a"></span>High-normal</td><td>130–139</td><td>and/or</td><td>85–89</td></tr>
+          <tr class="row-amber"><td><span class="dot a"></span>Grade 1 HTN</td><td>140–159</td><td>and/or</td><td>90–99</td></tr>
+          <tr class="row-red"><td><span class="dot r"></span>Grade 2 HTN</td><td>160–179</td><td>and/or</td><td>100–109</td></tr>
+          <tr class="row-red"><td><span class="dot r"></span>Grade 3 HTN</td><td>&ge; 180</td><td>and/or</td><td>&ge; 110</td></tr>
+          <tr class="row-red"><td><span class="dot r"></span>Isolated systolic HTN</td><td>&ge; 140</td><td>and</td><td>&lt; 90</td></tr>
+        </tbody>
+      </table>
+      <p class="small" style="margin-top: 18px;">Source: 2023 ESH Guidelines on Arterial Hypertension. For teaching only — not for clinical use.</p>
+      <div class="footer"><span>Session 2 — BP reference</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 23 · Classification pattern =========== -->
+    <section class="slide" data-phase="Clinic">
+      <span class="phase">Phase 4 · Pattern</span>
+      <h2>The classification pattern</h2>
+      <pre class="code" style="margin-top: 20px;">
+<span class="kw">def</span> classify_bp(systolic, diastolic):
+    <span class="kw">if</span> systolic &gt;= <span class="num">180</span> <span class="kw">or</span> diastolic &gt;= <span class="num">110</span>:
+        <span class="kw">return</span> <span class="str">"Grade 3"</span>
+    <span class="kw">elif</span> systolic &gt;= <span class="num">160</span> <span class="kw">or</span> diastolic &gt;= <span class="num">100</span>:
+        <span class="kw">return</span> <span class="str">"Grade 2"</span>
+    <span class="kw">elif</span> systolic &gt;= <span class="num">140</span> <span class="kw">or</span> diastolic &gt;= <span class="num">90</span>:
+        <span class="kw">return</span> <span class="str">"Grade 1"</span>
+    <span class="kw">elif</span> systolic &gt;= <span class="num">130</span> <span class="kw">or</span> diastolic &gt;= <span class="num">85</span>:
+        <span class="kw">return</span> <span class="str">"High-normal"</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="str">"Normal"</span>
+
+<span class="kw">for</span> p <span class="kw">in</span> patients:
+    p[<span class="str">"bp_category"</span>] = classify_bp(p[<span class="str">"systolic"</span>], p[<span class="str">"diastolic"</span>])
+</pre>
+      <p class="small" style="margin-top: 16px;">Functions come formally in Session 3 — but you already have the intuition: "a mini-procedure with a name."</p>
+      <div class="footer"><span>Session 2 — Pattern</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 24 · Phase 5 · four bugs =========== -->
+    <section class="slide" data-phase="DD">
+      <span class="phase">Phase 5 · Differential Diagnosis</span>
+      <h2>Four bugs you will meet today</h2>
+      <p class="small" style="margin-bottom: 24px;">Name them now. Recognise them when they bite.</p>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 22px;">
+        <div class="card">
+          <h4>1 · <code>=</code> vs. <code>==</code></h4>
+          <p><code>if age = 65:</code> → SyntaxError. <code>if age == 65:</code> → the comparison you meant.</p>
+        </div>
+        <div class="card">
+          <h4>2 · Off-by-one in ranges</h4>
+          <p><code>range(1, 10)</code> goes 1–9, not 1–10. Python ranges are <em>exclusive</em> on the right. Trip-wire for everyone coming from 1-indexed systems.</p>
+        </div>
+        <div class="card">
+          <h4>3 · Infinite <code>while</code></h4>
+          <p>The condition never becomes False. Tab closes but kernel stays busy → restart the kernel to free it.</p>
+        </div>
+        <div class="card accent">
+          <h4>4 · Wrong indentation</h4>
+          <p>One line indented too much or too little changes which <code>if</code> it belongs to. Python will either refuse to run it or run it <em>wrong but silently</em>.</p>
+        </div>
+      </div>
+      <div class="footer"><span>Session 2 — DD</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 25 · Take-home =========== -->
+    <section class="slide" data-phase="DD">
+      <span class="phase">Phase 5 · Take-home</span>
+      <h2>For the self-study phase</h2>
+      <div class="card accent" style="margin-top: 24px;">
+        <ol style="font-size: 26px; line-height: 1.5; margin: 0; padding-left: 30px;">
+          <li><strong>Exercise notebook</strong> — work through <code>session2/homework.ipynb</code>. Classify 10 body temperatures into categories (hypothermia, normal, low fever, high fever, hyperpyrexia). Same pattern as today's BP case.</li>
+          <li><strong>Find a dataset</strong> that interests you — any public, anonymised health-adjacent dataset (Kaggle, Zenodo, WHO, OECD). You will use it as the base for the mini-project in Block B.</li>
+          <li><strong>Write 3–5 sentences</strong> on what questions you would ask that dataset.</li>
+        </ol>
+      </div>
+      <p class="small" style="margin-top: 20px;">Upload both notebook and the dataset link/description to eCampus before the next session.</p>
+      <div class="footer"><span>Session 2 — Take-home</span><span class="progress"><span></span></span><span class="slide-num"></span></div>
+    </section>
+
+    <!-- =========== 26 · Preview Session 3 =========== -->
+    <section class="slide title-slide" data-phase="Close">
+      <span class="phase">See you in Block B</span>
+      <div class="grow"></div>
+      <span class="kicker">Next session</span>
+      <h1>Data Structures<br/>&amp; Functions.</h1>
+      <p class="lead">Lists · dicts · tuples · sets. Functions as reusable building blocks. The start of writing real, modular code.</p>
+      <div class="grow"></div>
+      <div class="footer">
+        <span>Two great days. Enjoy the self-study phase.</span>
+        <span class="progress"><span></span></span>
+        <span class="slide-num"></span>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="help" class="hidden">
+  <div><kbd>←</kbd> <kbd>→</kbd> navigate · <kbd>space</kbd> next · <kbd>home</kbd>/<kbd>end</kbd> jump</div>
+  <div><kbd>f</kbd> fullscreen · <kbd>?</kbd> toggle help</div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.querySelectorAll('.slide-num').forEach(el => {
+      el.textContent = (idx + 1) + ' / ' + total;
+    });
+    document.querySelectorAll('.progress span').forEach(el => {
+      el.style.width = (((idx + 1) / total) * 100) + '%';
+    });
+    history.replaceState(null, '', '#' + (idx + 1));
+  }
+
+  function go(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    render();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'PageDown':
+      case ' ':
+        e.preventDefault(); go(idx + 1); break;
+      case 'ArrowLeft':
+      case 'PageUp':
+        e.preventDefault(); go(idx - 1); break;
+      case 'Home':
+        e.preventDefault(); go(0); break;
+      case 'End':
+        e.preventDefault(); go(total - 1); break;
+      case 'f':
+      case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+        break;
+      case '?':
+        document.getElementById('help').classList.toggle('hidden');
+        break;
+    }
+  });
+
+  document.getElementById('stage').addEventListener('click', (e) => {
+    if (e.shiftKey) go(idx - 1); else go(idx + 1);
+  });
+
+  function fit() {
+    const deck = document.getElementById('deck');
+    const scale = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+    deck.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  const hashIdx = parseInt(location.hash.replace('#', ''), 10);
+  if (!isNaN(hashIdx) && hashIdx >= 1 && hashIdx <= total) idx = hashIdx - 1;
+  render();
+
+  const help = document.getElementById('help');
+  help.classList.remove('hidden');
+  setTimeout(() => help.classList.add('hidden'), 5000);
+</script>
+</body>
+</html>
