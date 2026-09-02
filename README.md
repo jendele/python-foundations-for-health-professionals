@@ -42,15 +42,15 @@ You do **not** need prior programming experience. You do need a laptop, patience
 
 ## Schedule
 
-| Session | Date | Topic | Folder |
-|---|---|---|---|
-| 1 | Thu, 23 Apr 2026 | Python as a Tool — Setup & First Dialog | `session1/` |
-| 2 | Fri, 24 Apr 2026 | Logic & Control Flow | `session2/` |
-| — | 27 Apr – 5 May | Self-study week | `self_study/` |
-| 3 | Wed, 6 May 2026 | Data Structures & Functions | `session3/` |
-| 4 | Thu, 7 May 2026 | Files & Pandas | `session4/` |
-| 5 | Fri, 8 May 2026 | Visualization, APIs, Clean Code | `session5/` |
-| Exam | Tue, 12 May 2026 | Practical assignment | `exam/` |
+| Session | Topic | Folder |
+|---|---|---|
+| 1 | Python as a Tool — Setup & First Dialog | `session1/` |
+| 2 | Logic & Control Flow | `session2/` |
+| — | Self-study | `self_study/` |
+| 3 | Data Structures & Functions | `session3/` |
+| 4 | Files & Pandas | `session4/` |
+| 5 | Visualization, APIs, Clean Code | `session5/` |
+| 6 | Practical assignment | `exam/` |
 
 All on-campus sessions run 09:00–12:45.
 
