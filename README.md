@@ -52,7 +52,6 @@ You do **not** need prior programming experience. You do need a laptop, patience
 | 5 | Visualization, APIs, Clean Code | `session5/` |
 | 6 | Practical assignment | `exam/` |
 
-All on-campus sessions run 09:00–12:45.
 
 ---
 
